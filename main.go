@@ -14,8 +14,14 @@ func main() {
 	db := config.ConnectDatabase()
 
 	userHandler := handler.NewUserHandler(service.NewUserService(repository.NewUserRepository(db)))
+	destinatinHandler := handler.NewDestinationHandler()
 
-	r.POST("/daftar", userHandler.Register)
+	r.POST("/register", userHandler.Register)
+	r.POST("/login", userHandler.Login)
+	r.GET("/destination", destinatinHandler.Destinations)
+	r.POST("/destination", destinatinHandler.Create)
+	// r.GET("/destination", destinatinHandler.DestinationCategory)
 
 	r.Run(":8080")
+
 }
