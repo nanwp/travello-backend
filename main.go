@@ -9,6 +9,7 @@ import (
 	"github.com/jub0bs/fcors"
 	"github.com/nanwp/travello/config"
 	"github.com/nanwp/travello/handler"
+	"github.com/nanwp/travello/middleware"
 	"github.com/nanwp/travello/repository"
 	"github.com/nanwp/travello/service"
 )
@@ -46,6 +47,8 @@ func main() {
 	r.POST("/register", userHandler.Register)
 	r.POST("/login", userHandler.Login)
 	r.GET("/destination", destinatinHandler.Destinations)
+	r.GET("/user", middleware.JWTMiddleware, userHandler.GetUser)
+
 	r.POST("/destination", destinatinHandler.Create)
 	// r.GET("/destination", destinatinHandler.DestinationCategory)
 

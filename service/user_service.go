@@ -11,6 +11,7 @@ type UserService interface {
 	Create(user users.UserCreate) (users.User, error)
 	FindByEmail(email string) (users.User, error)
 	FindAll() ([]users.User, error)
+	FindByID(id string) (users.UserResponse, error)
 }
 
 type userService struct {
@@ -41,6 +42,19 @@ func (s *userService) Create(user users.UserCreate) (users.User, error) {
 
 func (s *userService) FindByEmail(email string) (users.User, error) {
 	return s.repository.FindByEmail(email)
+}
+
+func (s *userService) FindByID(id string) (users.UserResponse, error) {
+	userGet, err := s.repository.FindByID(id)
+
+	user := users.UserResponse{
+		ID:    userGet.ID,
+		Name:  userGet.Name,
+		Email: userGet.Email,
+		Role:  userGet.Role,
+	}
+
+	return user, err
 }
 
 func (s *userService) FindAll() ([]users.User, error) {
