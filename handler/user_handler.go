@@ -142,7 +142,7 @@ func (h *userHandler) Login(c *gin.Context) {
 		HttpOnly: true,
 	})
 	c.JSON(http.StatusOK, gin.H{
-		"STATUS":  "OK",
+		"status":  "OK",
 		"message": "sucess login",
 		"token":   token,
 	})
