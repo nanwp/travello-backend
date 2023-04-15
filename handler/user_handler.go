@@ -37,7 +37,8 @@ func (h *userHandler) Register(c *gin.Context) {
 		}
 
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": errorMessages,
+			"status":"BAD_REQUEST",
+			"message": errorMessages,
 		})
 		return
 	}
