@@ -9,6 +9,7 @@ type UserRepository interface {
 	Create(user users.User) (users.User, error)
 	FindByEmail(email string) (users.User, error)
 	FindAll() ([]users.User, error)
+	FindByID(id string) (users.User, error)
 }
 
 type userRepository struct {
@@ -27,6 +28,12 @@ func (r *userRepository) Create(user users.User) (users.User, error) {
 func (r *userRepository) FindByEmail(email string) (users.User, error) {
 	var user users.User
 	err := r.db.Where("email = ?", email).First(&user).Error
+	return user, err
+}
+
+func (r *userRepository) FindByID(id string) (users.User, error) {
+	var user users.User
+	err := r.db.Where("id = ?", id).First(&user).Error
 	return user, err
 }
 

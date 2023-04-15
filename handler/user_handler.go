@@ -9,6 +9,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/nanwp/travello/config"
+	"github.com/nanwp/travello/middleware"
 	"github.com/nanwp/travello/models/users"
 	"github.com/nanwp/travello/service"
 	"golang.org/x/crypto/bcrypt"
@@ -65,6 +66,24 @@ func (h *userHandler) Register(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"data": user,
 	})
+}
+
+func (h *userHandler) GetUser(c *gin.Context) {
+
+	id := middleware.UserID
+
+	user, err := h.userService.FindByID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": err,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": user,
+	})
+
 }
 
 func (h *userHandler) Login(c *gin.Context) {
