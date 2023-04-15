@@ -48,7 +48,8 @@ func (h *userHandler) Register(c *gin.Context) {
 		if a.Email == userRequest.Email {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"email": a.Email,
-				"error": "email telah digunakan",
+				"status":"BAD_REQUEST",
+				"message": "email telah digunakan",
 			})
 			return
 		}
@@ -58,12 +59,15 @@ func (h *userHandler) Register(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err,
+			"message": err,
+			"status":"BAD_REQUEST",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
+		"status":"OK",
+		"message":"succes create user",
 		"data": user,
 	})
 }
