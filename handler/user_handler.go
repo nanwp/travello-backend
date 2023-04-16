@@ -37,7 +37,7 @@ func (h *userHandler) Register(c *gin.Context) {
 		}
 
 		c.JSON(http.StatusBadRequest, gin.H{
-			"status":"BAD_REQUEST",
+			"status":  "BAD_REQUEST",
 			"message": errorMessages,
 		})
 		return
@@ -48,8 +48,8 @@ func (h *userHandler) Register(c *gin.Context) {
 	for _, a := range emailCheck {
 		if a.Email == userRequest.Email {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"email": a.Email,
-				"status":"BAD_REQUEST",
+				"email":   a.Email,
+				"status":  "BAD_REQUEST",
 				"message": "email telah digunakan",
 			})
 			return
@@ -61,15 +61,15 @@ func (h *userHandler) Register(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": err,
-			"status":"BAD_REQUEST",
+			"status":  "BAD_REQUEST",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"status":"OK",
-		"message":"succes create user",
-		"data": user,
+		"status":  "OK",
+		"message": "succes create user",
+		"data":    user,
 	})
 }
 
@@ -81,12 +81,15 @@ func (h *userHandler) GetUser(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"message": err,
+			"status":  "BAD_REQUEST",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"data": user,
+		"status":  "OK",
+		"message": "success get data",
+		"data":    user,
 	})
 
 }
