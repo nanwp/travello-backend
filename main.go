@@ -48,6 +48,8 @@ func main() {
 	r.POST("/login", userHandler.Login)
 	r.GET("/destination", destinatinHandler.Destinations)
 	r.GET("/user", middleware.JWTMiddleware, userHandler.GetUser)
+	r.PUT("/user", middleware.JWTMiddleware, userHandler.UpdateUser)
+	r.PUT("/userpassword", middleware.JWTMiddleware, userHandler.UpdatePassword)
 
 	r.POST("/destination", destinatinHandler.Create)
 	// r.GET("/destination", destinatinHandler.DestinationCategory)

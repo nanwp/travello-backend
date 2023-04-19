@@ -94,6 +94,78 @@ func (h *userHandler) GetUser(c *gin.Context) {
 
 }
 
+func (h *userHandler) UpdateUser(c *gin.Context) {
+	id := middleware.UserID
+	var userUpdate users.UserUpdate
+
+	err := c.ShouldBindJSON(&userUpdate)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "BAD_REQUEST",
+			"message": err,
+		})
+		return
+	}
+
+	user, err := h.userService.Update(id, userUpdate)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "BAD_REQUEST",
+			"message": err,
+		})
+		return
+	}
+
+	responseData := users.UserResponse{
+		ID: user.ID,
+		Name: user.Name,
+		Email: user.Email,
+		Role: user.Role,
+		Password: user.Password,
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": "OK",
+		"message":"success update data",
+		"data":   responseData,
+	})
+}
+
+func (h *userHandler) UpdatePassword(c *gin.Context) {
+	id := middleware.UserID
+	var passwordUpdate users.UpdatePassword
+	err := c.ShouldBindJSON(&passwordUpdate)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "BAD_REQUEST",
+			"message": err,
+		})
+		return
+	}
+
+	user, err := h.userService.FindByID(id)
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(passwordUpdate.OldPassword)); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "BAD_REQUEST",
+			"message": "old password not match",
+		})
+		return
+	}
+
+
+
+	updated, err := h.userService.UpdatePassword(middleware.UserID, passwordUpdate.NewPassword)
+
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": "OK",
+		"message":"success update password",
+		"data":   updated,
+	})
+
+}
+
 func (h *userHandler) Login(c *gin.Context) {
 	var userInput users.UserLogin
 
