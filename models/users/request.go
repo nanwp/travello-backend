@@ -11,3 +11,13 @@ type UserLogin struct {
 	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
+
+type UserUpdate struct {
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+}
+
+type UpdatePassword struct {
+	OldPassword string `json:"old_password"`
+	NewPassword string `json:"new_password"`
+}
