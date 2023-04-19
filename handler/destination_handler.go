@@ -41,19 +41,22 @@ func (h *destinatinHandler) Destinations(c *gin.Context) {
 		}
 
 		hasil := []destinations.Destination{}
+
 		json.Unmarshal(responseData, &hasil)
 
 		if len(hasil) != 0 {
 			c.JSON(http.StatusOK, gin.H{
 				"success": true,
+				"status":  "OK",
 				"data":    hasil,
 			})
 			return
 		}
 
-		c.JSON(http.StatusBadRequest, gin.H{
+		c.JSON(http.StatusNotFound, gin.H{
 			"success": false,
-			"data":    "tidak ditemukan",
+			"status":  "NOT_FOUND",
+			"message": "tidak ditemukan",
 		})
 		return
 
@@ -82,6 +85,7 @@ func (h *destinatinHandler) Destinations(c *gin.Context) {
 		if len(hasil) != 0 {
 			c.JSON(http.StatusOK, gin.H{
 				"success": true,
+				"status":  "OK",
 				"data":    hasil,
 			})
 			return
@@ -118,6 +122,7 @@ func (h *destinatinHandler) Destinations(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
+		"status":  "OK",
 		"data":    hasil,
 	})
 }

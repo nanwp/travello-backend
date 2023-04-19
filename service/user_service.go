@@ -12,6 +12,8 @@ type UserService interface {
 	FindByEmail(email string) (users.User, error)
 	FindAll() ([]users.User, error)
 	FindByID(id string) (users.UserResponse, error)
+	Update(ID string, userUpdate users.UserUpdate) (users.User, error)
+	UpdatePassword(ID string, newPassword string) (users.User, error)
 }
 
 type userService struct {
@@ -20,6 +22,37 @@ type userService struct {
 
 func NewUserService(repository repository.UserRepository) *userService {
 	return &userService{repository}
+}
+func (s *userService) UpdatePassword(ID string, newPassword string) (users.User, error) {
+
+	user, err := s.repository.FindByID(ID)
+
+	hashPassword, _ := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+
+	user.Password = string(hashPassword)
+
+	updated, err := s.repository.Update(user)
+
+	return updated, err
+}
+
+func (s *userService) Update(ID string, userUpdate users.UserUpdate) (users.User, error) {
+	user, err := s.repository.FindByID(ID)
+	if err != nil {
+		return user, err
+	}
+
+	if userUpdate.Name != "" {
+		user.Name = userUpdate.Name
+	}
+
+	if userUpdate.Email != "" {
+		user.Email = userUpdate.Email
+	}
+
+	updateUser, err := s.repository.Update(user)
+
+	return updateUser, err
 }
 
 func (s *userService) Create(user users.UserCreate) (users.User, error) {
@@ -52,6 +85,7 @@ func (s *userService) FindByID(id string) (users.UserResponse, error) {
 		Name:  userGet.Name,
 		Email: userGet.Email,
 		Role:  userGet.Role,
+		Password: userGet.Password,
 	}
 
 	return user, err

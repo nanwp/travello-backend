@@ -10,6 +10,7 @@ type UserRepository interface {
 	FindByEmail(email string) (users.User, error)
 	FindAll() ([]users.User, error)
 	FindByID(id string) (users.User, error)
+	Update(user users.User) (users.User, error)
 }
 
 type userRepository struct {
@@ -41,4 +42,9 @@ func (r *userRepository) FindAll() ([]users.User, error) {
 	var users []users.User
 	err := r.db.Find(&users).Error
 	return users, err
+}
+
+func (r *userRepository) Update(user users.User) (users.User, error) {
+	err := r.db.Save(&user).Error
+	return user, err
 }
