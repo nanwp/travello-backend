@@ -67,7 +67,7 @@ func (h *ulasanHandler) AddUlasan(c *gin.Context) {
 		if u.UserId == middleware.UserID {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"status":  "BAD_REQUEST",
-				"message": "anda telah mengulas tempat ini",
+				"message": "hanya bisa 1 kali",
 			})
 			return
 		}
