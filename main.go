@@ -21,6 +21,7 @@ func main() {
 
 	userHandler := handler.NewUserHandler(service.NewUserService(repository.NewUserRepository(db)))
 	destinatinHandler := handler.NewDestinationHandler()
+	ulasanHandler := handler.NewUlasanHandler()
 
 	cors, err := fcors.AllowAccess(
 		fcors.FromAnyOrigin(),
@@ -53,6 +54,9 @@ func main() {
 
 	r.POST("/destination", destinatinHandler.Create)
 	// r.GET("/destination", destinatinHandler.DestinationCategory)
+
+	r.POST("/ulasan", middleware.JWTMiddleware, ulasanHandler.AddUlasan)
+	r.GET("/ulasan", middleware.JWTMiddleware, ulasanHandler.GetUlasanByDestination)
 
 	r.Run(":8080")
 

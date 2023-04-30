@@ -155,6 +155,7 @@ func (h *destinatinHandler) Create(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{
 		"data": bodyString,
 	})
+
 }
 
 // func (s *destinationService) Create(destinatin destinations.Destination) (http.Response, error) {
