@@ -83,7 +83,6 @@ func (h *ulasanHandler) AddUlasan(c *gin.Context) {
 	}
 
 	defer ulasanResp.Body.Close()
-	ulasanR, _ := ioutil.ReadAll(ulasanResp.Body)
 
 	//menghitung total ulasan
 	var totalUlasan = ulasan.Rating
@@ -116,12 +115,10 @@ func (h *ulasanHandler) AddUlasan(c *gin.Context) {
 	}
 
 	defer resp.Body.Close()
-	bodyReq, _ := ioutil.ReadAll(resp.Body)
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":  "OK",
-		"message": string(ulasanR),
-		"tes":     string(bodyReq),
+		"message": "berhasil menambahkan ulasan",
 	})
 }
 
