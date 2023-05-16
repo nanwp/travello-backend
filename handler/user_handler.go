@@ -78,7 +78,7 @@ func (h *userHandler) Register(c *gin.Context) {
 		return
 	}
 
-	helper.ResponseOutput(c, http.StatusOK, "OK", "succes create user", user)
+	helper.ResponseOutput(c, http.StatusCreated, "CREATED", "succes create user", user)
 }
 
 func (h *userHandler) GetUser(c *gin.Context) {
