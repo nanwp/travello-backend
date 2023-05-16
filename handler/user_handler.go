@@ -236,11 +236,6 @@ func (h *userHandler) Login(c *gin.Context) {
 		Path:     "/",
 		HttpOnly: true,
 	})
-	c.JSON(http.StatusOK, gin.H{
-		"status":  "OK",
-		"message": "sucess login",
-		"token":   token,
-	})
 
 	type resp struct {
 		Name  string `json:"name"`
