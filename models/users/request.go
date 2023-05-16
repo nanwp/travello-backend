@@ -4,7 +4,7 @@ type UserCreate struct {
 	FirstName string `json:"first_name" binding:"required"`
 	LastName  string `json:"last_name" binding:"required"`
 	Email     string `json:"email" binding:"required,email"`
-	Password  string `json:"password" binding:"required"`
+	Password  string `json:"password" binding:"required,min=8"`
 }
 
 type UserLogin struct {
@@ -13,8 +13,8 @@ type UserLogin struct {
 }
 
 type UserUpdate struct {
-	Name     string `json:"name"`
-	Email    string `json:"email"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
 }
 
 type UpdatePassword struct {

@@ -9,6 +9,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/nanwp/travello/config"
+	"github.com/nanwp/travello/helper"
 	"github.com/nanwp/travello/middleware"
 	"github.com/nanwp/travello/models/users"
 	"github.com/nanwp/travello/service"
@@ -24,6 +25,28 @@ func NewUserHandler(userService service.UserService) *userHandler {
 	return &userHandler{userService}
 }
 
+func (h *userHandler) VerifyEmail(c *gin.Context) {
+	userId := c.Query("id")
+
+	if userId == "" {
+		c.HTML(http.StatusNotFound, "not-found.html", gin.H{})
+		return
+	}
+
+	user, err := h.userService.VerifyEmail(userId)
+
+	if err != nil {
+		c.HTML(http.StatusOK, "not-found.html", gin.H{
+			"data": user,
+		})
+		return
+	}
+
+	c.HTML(http.StatusOK, "verification-success.html", gin.H{
+		"data": user,
+	})
+}
+
 func (h *userHandler) Register(c *gin.Context) {
 	var userRequest users.UserCreate
 
@@ -35,11 +58,7 @@ func (h *userHandler) Register(c *gin.Context) {
 			errorMessage := fmt.Sprintf("Error on fieled %s, conditions: %s", e.Field(), e.ActualTag())
 			errorMessages = append(errorMessages, errorMessage)
 		}
-
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  "BAD_REQUEST",
-			"message": errorMessages,
-		})
+		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", errorMessages, nil)
 		return
 	}
 
@@ -47,11 +66,7 @@ func (h *userHandler) Register(c *gin.Context) {
 
 	for _, a := range emailCheck {
 		if a.Email == userRequest.Email {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"email":   a.Email,
-				"status":  "BAD_REQUEST",
-				"message": "email telah digunakan",
-			})
+			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", "email telah digunakan", nil)
 			return
 		}
 	}
@@ -59,18 +74,11 @@ func (h *userHandler) Register(c *gin.Context) {
 	user, err := h.userService.Create(userRequest)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": err,
-			"status":  "BAD_REQUEST",
-		})
+		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err, nil)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"status":  "OK",
-		"message": "succes create user",
-		"data":    user,
-	})
+	helper.ResponseOutput(c, http.StatusOK, "OK", "succes create user", user)
 }
 
 func (h *userHandler) GetUser(c *gin.Context) {
@@ -83,14 +91,11 @@ func (h *userHandler) GetUser(c *gin.Context) {
 			"message": err,
 			"status":  "BAD_REQUEST",
 		})
+		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err, nil)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"status":  "OK",
-		"message": "success get data",
-		"data":    user,
-	})
+	helper.ResponseOutput(c, http.StatusOK, "OK", nil, user)
 
 }
 
@@ -100,35 +105,24 @@ func (h *userHandler) UpdateUser(c *gin.Context) {
 
 	err := c.ShouldBindJSON(&userUpdate)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  "BAD_REQUEST",
-			"message": err,
-		})
+		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err, nil)
 		return
 	}
 
 	user, err := h.userService.Update(id, userUpdate)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  "BAD_REQUEST",
-			"message": err,
-		})
+		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err, nil)
 		return
 	}
 
 	responseData := users.UserResponse{
-		ID: user.ID,
-		Name: user.Name,
-		Email: user.Email,
-		Role: user.Role,
+		ID:       user.ID,
+		Name:     user.Name,
+		Email:    user.Email,
+		Role:     user.Role,
 		Password: user.Password,
 	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"status": "OK",
-		"message":"success update data",
-		"data":   responseData,
-	})
+	helper.ResponseOutput(c, http.StatusOK, "OK", "success update data", responseData)
 }
 
 func (h *userHandler) UpdatePassword(c *gin.Context) {
@@ -140,6 +134,7 @@ func (h *userHandler) UpdatePassword(c *gin.Context) {
 			"status":  "BAD_REQUEST",
 			"message": err,
 		})
+		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err, nil)
 		return
 	}
 
@@ -150,19 +145,18 @@ func (h *userHandler) UpdatePassword(c *gin.Context) {
 			"status":  "BAD_REQUEST",
 			"message": "old password not match",
 		})
+		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", "old password not match", nil)
 		return
 	}
 
-
-
 	updated, err := h.userService.UpdatePassword(middleware.UserID, passwordUpdate.NewPassword)
 
-
 	c.JSON(http.StatusOK, gin.H{
-		"status": "OK",
-		"message":"success update password",
-		"data":   updated,
+		"status":  "OK",
+		"message": "success update password",
+		"data":    updated,
 	})
+	helper.ResponseOutput(c, http.StatusOK, "OK", "success update password", updated)
 
 }
 
@@ -181,6 +175,7 @@ func (h *userHandler) Login(c *gin.Context) {
 			"status": "BAD_REQUEST",
 			"errors": errorMessages,
 		})
+		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", errorMessages, nil)
 		return
 	}
 
@@ -192,6 +187,7 @@ func (h *userHandler) Login(c *gin.Context) {
 				"status":  "BAD_REQUEST",
 				"message": "user not found",
 			})
+			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", "user not found", nil)
 			return
 
 		default:
@@ -199,15 +195,14 @@ func (h *userHandler) Login(c *gin.Context) {
 				"status":  "BAD_REQUEST",
 				"message": err,
 			})
+			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err, nil)
+
 			return
 		}
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(userLogin.Password), []byte(userInput.Password)); err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"status":  "UNAUTHORIZED",
-			"message": "password not match",
-		})
+		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", "password not match", nil)
 		return
 	}
 
@@ -228,6 +223,7 @@ func (h *userHandler) Login(c *gin.Context) {
 			"status":  "INTERNAL_SERVER_ERROR",
 			"message": err.Error(),
 		})
+		helper.ResponseOutput(c, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", err, nil)
 		return
 	}
 
@@ -245,4 +241,18 @@ func (h *userHandler) Login(c *gin.Context) {
 		"message": "sucess login",
 		"token":   token,
 	})
+
+	type resp struct {
+		Name  string `json:"name"`
+		Email string `json:"email"`
+		Token string `json:"token"`
+	}
+
+	datRes := resp{
+		Name:  userLogin.Name,
+		Email: userLogin.Email,
+		Token: token,
+	}
+
+	helper.ResponseOutput(c, http.StatusOK, "OK", "sucess login", datRes)
 }

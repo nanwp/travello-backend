@@ -5,8 +5,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"sort"
 
 	"github.com/gin-gonic/gin"
+	"github.com/nanwp/travello/helper"
 	"github.com/nanwp/travello/models/destinations"
 )
 
@@ -23,20 +25,16 @@ func (h *destinatinHandler) Destinations(c *gin.Context) {
 	category := c.Query("category")
 	search := c.Query("search")
 
-	if search != "" {
-		response, err := http.Get(h.urlApi + "?search=" + search)
+	if search != "" && category != "" {
+		response, err := http.Get(h.urlApi + "?search=" + search + "&category=" + category)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": err,
-			})
+			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
 			return
 		}
 
 		responseData, err := ioutil.ReadAll(response.Body)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": err,
-			})
+			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
 			return
 		}
 
@@ -44,57 +42,75 @@ func (h *destinatinHandler) Destinations(c *gin.Context) {
 
 		json.Unmarshal(responseData, &hasil)
 
+		sort.Slice(hasil, func(i, j int) bool {
+			return hasil[j].UpdatedAt < hasil[i].UpdatedAt
+		})
+
 		if len(hasil) != 0 {
-			c.JSON(http.StatusOK, gin.H{
-				"success": true,
-				"status":  "OK",
-				"data":    hasil,
-			})
+			helper.ResponseOutput(c, http.StatusOK, "OK", "Success get data", hasil)
 			return
 		}
 
-		c.JSON(http.StatusNotFound, gin.H{
-			"success": false,
-			"status":  "NOT_FOUND",
-			"message": "tidak ditemukan",
-		})
+		helper.ResponseOutput(c, http.StatusNotFound, "NOT_FOUND", "data not found", nil)
 		return
+	}
 
+	if search != "" {
+		response, err := http.Get(h.urlApi + "?search=" + search)
+		if err != nil {
+			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
+			return
+		}
+
+		responseData, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
+			return
+		}
+
+		hasil := []destinations.Destination{}
+
+		json.Unmarshal(responseData, &hasil)
+
+		sort.Slice(hasil, func(i, j int) bool {
+			return hasil[j].UpdatedAt < hasil[i].UpdatedAt
+		})
+
+		if len(hasil) != 0 {
+			helper.ResponseOutput(c, http.StatusOK, "OK", "Success get data", hasil)
+			return
+		}
+
+		helper.ResponseOutput(c, http.StatusNotFound, "NOT_FOUND", "data not found", nil)
+		return
 	}
 
 	if category != "" {
 		response, err := http.Get(h.urlApi + "?category=" + category)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": err,
-			})
+			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
 			return
 		}
 
 		responseData, err := ioutil.ReadAll(response.Body)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": err,
-			})
+			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
 			return
 		}
 
 		hasil := []destinations.Destination{}
 		json.Unmarshal(responseData, &hasil)
 
+		sort.Slice(hasil, func(i, j int) bool {
+			return hasil[j].UpdatedAt < hasil[i].UpdatedAt
+		})
+
 		if len(hasil) != 0 {
-			c.JSON(http.StatusOK, gin.H{
-				"success": true,
-				"status":  "OK",
-				"data":    hasil,
-			})
+			helper.ResponseOutput(c, http.StatusOK, "OK", "Success get data", hasil)
 			return
 		}
 
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"data":    "tidak ditemukan",
-		})
+		helper.ResponseOutput(c, http.StatusNotFound, "NOT_FOUND", "data not found", nil)
 		return
 
 	}
@@ -102,17 +118,13 @@ func (h *destinatinHandler) Destinations(c *gin.Context) {
 	response, err := http.Get(h.urlApi)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err,
-		})
+		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
 		return
 	}
 
 	responseData, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err,
-		})
+		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
 		return
 	}
 
@@ -120,11 +132,11 @@ func (h *destinatinHandler) Destinations(c *gin.Context) {
 
 	json.Unmarshal(responseData, &hasil)
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"status":  "OK",
-		"data":    hasil,
+	sort.Slice(hasil, func(i, j int) bool {
+		return hasil[j].UpdatedAt < hasil[i].UpdatedAt
 	})
+
+	helper.ResponseOutput(c, http.StatusOK, "OK", "Success get data", hasil)
 }
 
 func (h *destinatinHandler) Create(c *gin.Context) {
