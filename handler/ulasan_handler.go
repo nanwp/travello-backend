@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/nanwp/travello/config"
+	"github.com/nanwp/travello/helper"
 	"github.com/nanwp/travello/middleware"
 	"github.com/nanwp/travello/models/destinations"
 	"github.com/nanwp/travello/models/ulasans"
@@ -30,9 +31,7 @@ func (h *ulasanHandler) AddUlasan(c *gin.Context) {
 	err := c.ShouldBindJSON(&ulasanBody)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err,
-		})
+		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
 		return
 	}
 
@@ -49,9 +48,7 @@ func (h *ulasanHandler) AddUlasan(c *gin.Context) {
 
 	dataUlasan, err := http.Get(h.urlApi + "?destination=" + ulasanBody.DestinationId)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err,
-		})
+		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
 		return
 	}
 
@@ -65,10 +62,7 @@ func (h *ulasanHandler) AddUlasan(c *gin.Context) {
 	for _, u := range arrayUlasan {
 		fmt.Println(u)
 		if u.UserId == middleware.UserID {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":  "BAD_REQUEST",
-				"message": "hanya bisa 1 kali",
-			})
+			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", "hanya bisa 1 kali", nil)
 			return
 		}
 	}
@@ -76,9 +70,7 @@ func (h *ulasanHandler) AddUlasan(c *gin.Context) {
 	//mengirim data ulasan
 	ulasanResp, err := http.Post(h.urlApi, "application/json; charset=utf-8", bytes.NewBuffer(ulasanReq))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err,
-		})
+		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
 		return
 	}
 
@@ -116,10 +108,7 @@ func (h *ulasanHandler) AddUlasan(c *gin.Context) {
 
 	defer resp.Body.Close()
 
-	c.JSON(http.StatusOK, gin.H{
-		"status":  "OK",
-		"message": "berhasil menambahkan ulasan",
-	})
+	helper.ResponseOutput(c, http.StatusOK, "OK", "berhasil menambahkan ulasan", nil)
 }
 
 func (h ulasanHandler) GetUlasanByDestination(c *gin.Context) {
@@ -128,9 +117,7 @@ func (h ulasanHandler) GetUlasanByDestination(c *gin.Context) {
 
 	resp, err := http.Get(h.urlApi + "?destination=" + idDestination)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err,
-		})
+		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
 		return
 	}
 
@@ -143,20 +130,26 @@ func (h ulasanHandler) GetUlasanByDestination(c *gin.Context) {
 
 	json.Unmarshal([]byte(bodyString), &arrayUlasan)
 
+	if len(arrayUlasan) == 0 {
+		helper.ResponseOutput(c, http.StatusNotFound, "NOT_FOUND", "belum ada ulasan", nil)
+	}
+
 	respDest, err := http.Get("https://ap-southeast-1.aws.data.mongodb-api.com/app/travello-sfoqh/endpoint/destination" + "?id=" + idDestination)
 	if err != nil {
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": err,
-			})
-			return
-		}
+		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
+		return
 	}
 	defer respDest.Body.Close()
 
 	dataDest, _ := ioutil.ReadAll(respDest.Body)
+
 	var destination destinations.Destination
 	json.Unmarshal(dataDest, &destination)
+
+	if destination.ID == "" {
+		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", "data not found", nil)
+		return
+	}
 
 	responseUlasans := []ulasans.ResponseUlasan{}
 
@@ -174,13 +167,6 @@ func (h ulasanHandler) GetUlasanByDestination(c *gin.Context) {
 		responseUlasans = append(responseUlasans, responseUlasan)
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"status":  "OK",
-		"message": "success",
-		"data": gin.H{
-			"destination": destination,
-			"ulasan":      responseUlasans,
-		},
-	})
+	helper.ResponseOutput(c, http.StatusOK, "OK", "success", gin.H{"destination": destination, "ulasan": responseUlasans})
 
 }
