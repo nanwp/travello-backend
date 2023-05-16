@@ -8,6 +8,7 @@ type User struct {
 	Email     string
 	Password  string
 	Role      string
+	Verified  bool
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

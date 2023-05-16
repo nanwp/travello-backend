@@ -47,6 +47,9 @@ func main() {
 
 	r.POST("/register", userHandler.Register)
 	r.POST("/login", userHandler.Login)
+	r.GET("/verify", userHandler.VerifyEmail)
+	r.LoadHTMLGlob("templates/*/*.html")
+
 	r.GET("/destination", destinatinHandler.Destinations)
 	r.GET("/user", middleware.JWTMiddleware, userHandler.GetUser)
 	r.PUT("/user", middleware.JWTMiddleware, userHandler.UpdateUser)
@@ -56,7 +59,14 @@ func main() {
 	// r.GET("/destination", destinatinHandler.DestinationCategory)
 
 	r.POST("/ulasan", middleware.JWTMiddleware, ulasanHandler.AddUlasan)
-	r.GET("/ulasan", middleware.JWTMiddleware, ulasanHandler.GetUlasanByDestination)
+	r.GET("/ulasan", ulasanHandler.GetUlasanByDestination)
+
+	r.NoRoute(func(c *gin.Context) {
+		c.JSON(404, gin.H{
+			"code":    404,
+			"message": "Page not found",
+		})
+	})
 
 	r.Run(":8080")
 

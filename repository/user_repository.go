@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"time"
+
 	"github.com/nanwp/travello/models/users"
 	"gorm.io/gorm"
 )
@@ -45,6 +47,13 @@ func (r *userRepository) FindAll() ([]users.User, error) {
 }
 
 func (r *userRepository) Update(user users.User) (users.User, error) {
-	err := r.db.Save(&user).Error
+	err := r.db.Model(&users.User{}).Where("id = ?", user.ID).Updates(map[string]interface{}{
+		"name":       user.Name,
+		"email":      user.Email,
+		"role":       user.Role,
+		"password":   user.Password,
+		"verified":   user.Verified,
+		"updated_at": time.Now(),
+	}).Error
 	return user, err
 }
