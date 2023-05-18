@@ -46,8 +46,13 @@ func (h *destinatinHandler) Destinations(c *gin.Context) {
 			return hasil[j].UpdatedAt < hasil[i].UpdatedAt
 		})
 
+		var data []destinations.DestinationResponse
+
 		if len(hasil) != 0 {
-			helper.ResponseOutput(c, http.StatusOK, "OK", "Success get data", hasil)
+			for _, d := range hasil {
+				data = append(data, convertDataToResponse(d))
+			}
+			helper.ResponseOutput(c, http.StatusOK, "OK", "Success get data", data)
 			return
 		}
 
@@ -76,8 +81,13 @@ func (h *destinatinHandler) Destinations(c *gin.Context) {
 			return hasil[j].UpdatedAt < hasil[i].UpdatedAt
 		})
 
+		var data []destinations.DestinationResponse
+
 		if len(hasil) != 0 {
-			helper.ResponseOutput(c, http.StatusOK, "OK", "Success get data", hasil)
+			for _, d := range hasil {
+				data = append(data, convertDataToResponse(d))
+			}
+			helper.ResponseOutput(c, http.StatusOK, "OK", "Success get data", data)
 			return
 		}
 
@@ -105,8 +115,13 @@ func (h *destinatinHandler) Destinations(c *gin.Context) {
 			return hasil[j].UpdatedAt < hasil[i].UpdatedAt
 		})
 
+		var data []destinations.DestinationResponse
+
 		if len(hasil) != 0 {
-			helper.ResponseOutput(c, http.StatusOK, "OK", "Success get data", hasil)
+			for _, d := range hasil {
+				data = append(data, convertDataToResponse(d))
+			}
+			helper.ResponseOutput(c, http.StatusOK, "OK", "Success get data", data)
 			return
 		}
 
@@ -136,7 +151,13 @@ func (h *destinatinHandler) Destinations(c *gin.Context) {
 		return hasil[j].UpdatedAt < hasil[i].UpdatedAt
 	})
 
-	helper.ResponseOutput(c, http.StatusOK, "OK", "Success get data", hasil)
+	var data []destinations.DestinationResponse
+
+	for _, d := range hasil {
+		data = append(data, convertDataToResponse(d))
+	}
+	helper.ResponseOutput(c, http.StatusOK, "OK", "Success get data", data)
+
 }
 
 func (h *destinatinHandler) Create(c *gin.Context) {
