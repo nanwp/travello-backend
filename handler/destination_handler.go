@@ -34,7 +34,7 @@ func (h *destinatinHandler) Destinations(c *gin.Context) {
 
 		responseData, err := ioutil.ReadAll(response.Body)
 		if err != nil {
-			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
+			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), destinations.Destination{})
 			return
 		}
 
@@ -51,20 +51,20 @@ func (h *destinatinHandler) Destinations(c *gin.Context) {
 			return
 		}
 
-		helper.ResponseOutput(c, http.StatusNotFound, "NOT_FOUND", "data not found", nil)
+		helper.ResponseOutput(c, http.StatusNotFound, "NOT_FOUND", "data not found", destinations.Destination{})
 		return
 	}
 
 	if search != "" {
 		response, err := http.Get(h.urlApi + "?search=" + search)
 		if err != nil {
-			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
+			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), destinations.Destination{})
 			return
 		}
 
 		responseData, err := ioutil.ReadAll(response.Body)
 		if err != nil {
-			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
+			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), destinations.Destination{})
 			return
 		}
 
@@ -81,20 +81,20 @@ func (h *destinatinHandler) Destinations(c *gin.Context) {
 			return
 		}
 
-		helper.ResponseOutput(c, http.StatusNotFound, "NOT_FOUND", "data not found", nil)
+		helper.ResponseOutput(c, http.StatusNotFound, "NOT_FOUND", "data not found", destinations.Destination{})
 		return
 	}
 
 	if category != "" {
 		response, err := http.Get(h.urlApi + "?category=" + category)
 		if err != nil {
-			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
+			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), destinations.Destination{})
 			return
 		}
 
 		responseData, err := ioutil.ReadAll(response.Body)
 		if err != nil {
-			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
+			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), destinations.Destination{})
 			return
 		}
 
@@ -110,7 +110,7 @@ func (h *destinatinHandler) Destinations(c *gin.Context) {
 			return
 		}
 
-		helper.ResponseOutput(c, http.StatusNotFound, "NOT_FOUND", "data not found", nil)
+		helper.ResponseOutput(c, http.StatusNotFound, "NOT_FOUND", "data not found", destinations.Destination{})
 		return
 
 	}
@@ -118,13 +118,13 @@ func (h *destinatinHandler) Destinations(c *gin.Context) {
 	response, err := http.Get(h.urlApi)
 
 	if err != nil {
-		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
+		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), destinations.Destination{})
 		return
 	}
 
 	responseData, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
+		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), destinations.Destination{})
 		return
 	}
 
