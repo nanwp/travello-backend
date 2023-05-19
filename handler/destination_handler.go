@@ -197,7 +197,7 @@ func convertDataToResponse(data destinations.Destination) destinations.Destinati
 		Nama:        data.Nama,
 		Description: data.Description,
 		Location:    data.Location,
-		Category:    data.Description,
+		Category:    data.Category,
 		Image:       data.Image,
 		Rating:      data.Rating,
 		CreatedAt:   data.Category,
