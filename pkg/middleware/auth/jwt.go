@@ -1,4 +1,4 @@
-package middleware
+package auth
 
 import (
 	"net/http"
@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/nanwp/travello/config"
+	"github.com/nanwp/travello/helper"
 )
 
 var UserID string
@@ -32,24 +33,15 @@ func JWTMiddleware(c *gin.Context) {
 		v, _ := err.(*jwt.ValidationError)
 		switch v.Errors {
 		case jwt.ValidationErrorSignatureInvalid:
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"message": "Unauthorize",
-				"status":  "UNAUTHORIZE",
-			})
+			helper.ResponseOutput(c, http.StatusUnauthorized, "UNAUTHORIZE", "Unauthorize", nil)
 			c.Abort()
 			return
 		case jwt.ValidationErrorExpired:
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"status":  "UNAUTHORIZE",
-				"message": "Unauthorize! Token Expired",
-			})
+			helper.ResponseOutput(c, http.StatusUnauthorized, "UNAUTHORIZE", "Unauthorize! Token Expired", nil)
 			c.Abort()
 			return
 		default:
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"status":  "UNAUTHORIZE",
-				"message": "Unauthorize",
-			})
+			helper.ResponseOutput(c, http.StatusUnauthorized, "UNAUTHORIZE", "Unauthorize", nil)
 			c.Abort()
 			return
 		}
@@ -57,10 +49,7 @@ func JWTMiddleware(c *gin.Context) {
 	}
 
 	if !token.Valid {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"status":  "UNAUTHORIZE",
-			"message": "Unauthorize",
-		})
+		helper.ResponseOutput(c, http.StatusUnauthorized, "UNAUTHORIZE", "Unauthorize", nil)
 		c.Abort()
 		return
 	}

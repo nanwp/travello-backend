@@ -10,8 +10,8 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/nanwp/travello/config"
 	"github.com/nanwp/travello/helper"
-	"github.com/nanwp/travello/middleware"
 	"github.com/nanwp/travello/models/users"
+	"github.com/nanwp/travello/pkg/middleware/auth"
 	"github.com/nanwp/travello/service"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -83,7 +83,7 @@ func (h *userHandler) Register(c *gin.Context) {
 
 func (h *userHandler) GetUser(c *gin.Context) {
 
-	id := middleware.UserID
+	id := auth.UserID
 
 	user, err := h.userService.FindByID(id)
 	if err != nil {
@@ -100,7 +100,7 @@ func (h *userHandler) GetUser(c *gin.Context) {
 }
 
 func (h *userHandler) UpdateUser(c *gin.Context) {
-	id := middleware.UserID
+	id := auth.UserID
 	var userUpdate users.UserUpdate
 
 	err := c.ShouldBindJSON(&userUpdate)
@@ -126,7 +126,7 @@ func (h *userHandler) UpdateUser(c *gin.Context) {
 }
 
 func (h *userHandler) UpdatePassword(c *gin.Context) {
-	id := middleware.UserID
+	id := auth.UserID
 	var passwordUpdate users.UpdatePassword
 	err := c.ShouldBindJSON(&passwordUpdate)
 	if err != nil {
@@ -149,7 +149,7 @@ func (h *userHandler) UpdatePassword(c *gin.Context) {
 		return
 	}
 
-	updated, err := h.userService.UpdatePassword(middleware.UserID, passwordUpdate.NewPassword)
+	updated, err := h.userService.UpdatePassword(auth.UserID, passwordUpdate.NewPassword)
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":  "OK",

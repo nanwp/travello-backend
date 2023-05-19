@@ -11,9 +11,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/nanwp/travello/config"
 	"github.com/nanwp/travello/helper"
-	"github.com/nanwp/travello/middleware"
 	"github.com/nanwp/travello/models/destinations"
 	"github.com/nanwp/travello/models/ulasans"
+	"github.com/nanwp/travello/pkg/middleware/auth"
 	"github.com/nanwp/travello/repository"
 	"github.com/nanwp/travello/service"
 )
@@ -36,7 +36,7 @@ func (h *ulasanHandler) AddUlasan(c *gin.Context) {
 	}
 
 	ulasan := ulasans.Ulasan{
-		UserId:        middleware.UserID,
+		UserId:        auth.UserID,
 		DestinationId: ulasanBody.DestinationId,
 		Message:       ulasanBody.Message,
 		Rating:        ulasanBody.Rating,
@@ -61,7 +61,7 @@ func (h *ulasanHandler) AddUlasan(c *gin.Context) {
 	//validasi ketika sudah memberikan ulasan
 	for _, u := range arrayUlasan {
 		fmt.Println(u)
-		if u.UserId == middleware.UserID {
+		if u.UserId == auth.UserID {
 			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", "hanya bisa 1 kali", nil)
 			return
 		}
