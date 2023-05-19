@@ -19,7 +19,7 @@ type DestinationResponse struct {
 	Location    string  `json:"location,omitempty"`
 	Category    string  `json:"category,omitempty"`
 	Image       string  `json:"image,omitempty"`
-	Rating      float32 `json:"rating,omitempty"`
+	Rating      float32 `json:"rating"`
 	CreatedAt   string  `json:"created_at,omitempty"`
 	UpdatedAt   string  `json:"updated_at,omitempty"`
 }
