@@ -26,7 +26,7 @@ func (h *destinatinHandler) Destinations(c *gin.Context) {
 	search := c.Query("search")
 
 	if search != "" && category != "" {
-		response, err := http.Get(h.urlApi + "?search=" + search + "&category=" + category)
+		response, err := http.Get(h.urlApi + "?search=" + url.QueryEscape(search) + "&category=" + category)
 		if err != nil {
 			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
 			return
@@ -34,7 +34,7 @@ func (h *destinatinHandler) Destinations(c *gin.Context) {
 
 		responseData, err := ioutil.ReadAll(response.Body)
 		if err != nil {
-			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), []destinations.DestinationResponse{})
+			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
 			return
 		}
 
@@ -61,7 +61,7 @@ func (h *destinatinHandler) Destinations(c *gin.Context) {
 	}
 
 	if search != "" {
-		response, err := http.Get(h.urlApi + "?search=" + search)
+		response, err := http.Get(h.urlApi + "?search=" + url.QueryEscape(search))
 		if err != nil {
 			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), []destinations.DestinationResponse{})
 			return
