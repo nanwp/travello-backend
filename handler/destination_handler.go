@@ -28,13 +28,13 @@ func (h *destinatinHandler) Destinations(c *gin.Context) {
 	if search != "" && category != "" {
 		response, err := http.Get(h.urlApi + "?search=" + url.QueryEscape(search) + "&category=" + category)
 		if err != nil {
-			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
+			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), []destinations.DestinationResponse{})
 			return
 		}
 
 		responseData, err := ioutil.ReadAll(response.Body)
 		if err != nil {
-			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
+			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), []destinations.DestinationResponse{})
 			return
 		}
 
