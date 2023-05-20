@@ -200,7 +200,7 @@ func convertDataToResponse(data destinations.Destination) destinations.Destinati
 		Category:    data.Category,
 		Image:       data.Image,
 		Rating:      data.Rating,
-		CreatedAt:   data.Category,
+		CreatedAt:   data.CreatedAt,
 		UpdatedAt:   data.UpdatedAt,
 	}
 	return resp
