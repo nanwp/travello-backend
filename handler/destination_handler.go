@@ -10,6 +10,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/nanwp/travello/helper"
 	"github.com/nanwp/travello/models/destinations"
+	"github.com/nanwp/travello/models/ulasans"
+	"github.com/nanwp/travello/service"
 )
 
 type destinatinHandler struct {
@@ -52,7 +54,12 @@ func (h *destinatinHandler) Destination(c *gin.Context) {
 	hasil := destinations.Destination{}
 	json.Unmarshal(responseData, &hasil)
 
-	respData := convertDataToResponse(hasil)
+	ulas, jumlah, err := service.NewUlasanService().Get(destinationId)
+	if err != nil {
+		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
+	}
+
+	respData := convertDataToResponse(hasil, jumlah, ulas[:4])
 
 	helper.ResponseOutput(c, http.StatusOK, "OK", "Success get data", respData)
 }
@@ -87,7 +94,8 @@ func (h *destinatinHandler) Destinations(c *gin.Context) {
 
 		if len(hasil) != 0 {
 			for _, d := range hasil {
-				data = append(data, convertDataToResponse(d))
+				_, jumlah, _ := service.NewUlasanService().Get(d.ID)
+				data = append(data, convertDataToResponse(d, jumlah, nil))
 			}
 			helper.ResponseOutput(c, http.StatusOK, "OK", "Success get data", data)
 			return
@@ -122,7 +130,8 @@ func (h *destinatinHandler) Destinations(c *gin.Context) {
 
 		if len(hasil) != 0 {
 			for _, d := range hasil {
-				data = append(data, convertDataToResponse(d))
+				_, jumlah, _ := service.NewUlasanService().Get(d.ID)
+				data = append(data, convertDataToResponse(d, jumlah, nil))
 			}
 			helper.ResponseOutput(c, http.StatusOK, "OK", "Success get data", data)
 			return
@@ -156,7 +165,8 @@ func (h *destinatinHandler) Destinations(c *gin.Context) {
 
 		if len(hasil) != 0 {
 			for _, d := range hasil {
-				data = append(data, convertDataToResponse(d))
+				_, jumlah, _ := service.NewUlasanService().Get(d.ID)
+				data = append(data, convertDataToResponse(d, jumlah, nil))
 			}
 			helper.ResponseOutput(c, http.StatusOK, "OK", "Success get data", data)
 			return
@@ -191,7 +201,8 @@ func (h *destinatinHandler) Destinations(c *gin.Context) {
 	var data []destinations.DestinationResponse
 
 	for _, d := range hasil {
-		data = append(data, convertDataToResponse(d))
+		_, jumlah, _ := service.NewUlasanService().Get(d.ID)
+		data = append(data, convertDataToResponse(d, jumlah, nil))
 	}
 	helper.ResponseOutput(c, http.StatusOK, "OK", "Success get data", data)
 
@@ -228,7 +239,7 @@ func (h *destinatinHandler) Create(c *gin.Context) {
 
 }
 
-func convertDataToResponse(data destinations.Destination) destinations.DestinationResponse {
+func convertDataToResponse(data destinations.Destination, jumlah int, ulasan []ulasans.ResponseUlasan) destinations.DestinationResponse {
 	resp := destinations.DestinationResponse{
 		ID:          data.ID,
 		Nama:        data.Nama,
@@ -237,6 +248,8 @@ func convertDataToResponse(data destinations.Destination) destinations.Destinati
 		Category:    data.Category,
 		Image:       data.Image,
 		Rating:      data.Rating,
+		CountUlasan: jumlah,
+		Ulasan:      ulasan,
 		CreatedAt:   data.CreatedAt,
 		UpdatedAt:   data.UpdatedAt,
 	}

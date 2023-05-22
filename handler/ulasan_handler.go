@@ -9,21 +9,19 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/nanwp/travello/config"
 	"github.com/nanwp/travello/helper"
-	"github.com/nanwp/travello/models/destinations"
 	"github.com/nanwp/travello/models/ulasans"
 	"github.com/nanwp/travello/pkg/middleware/auth"
-	"github.com/nanwp/travello/repository"
 	"github.com/nanwp/travello/service"
 )
 
 type ulasanHandler struct {
-	urlApi string
+	urlApi        string
+	ulasanService service.UlasanService
 }
 
-func NewUlasanHandler() *ulasanHandler {
-	return &ulasanHandler{"https://ap-southeast-1.aws.data.mongodb-api.com/app/travello-sfoqh/endpoint/ulasan"}
+func NewUlasanHandler(service service.UlasanService) *ulasanHandler {
+	return &ulasanHandler{"https://ap-southeast-1.aws.data.mongodb-api.com/app/travello-sfoqh/endpoint/ulasan", service}
 }
 
 func (h *ulasanHandler) AddUlasan(c *gin.Context) {
@@ -115,58 +113,12 @@ func (h ulasanHandler) GetUlasanByDestination(c *gin.Context) {
 
 	idDestination := c.Query("destination")
 
-	resp, err := http.Get(h.urlApi + "?destination=" + idDestination)
+	data, count, err := h.ulasanService.Get(idDestination)
 	if err != nil {
-		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
+		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err, nil)
 		return
 	}
 
-	defer resp.Body.Close()
-	bodyBytes, _ := ioutil.ReadAll(resp.Body)
-
-	bodyString := string(bodyBytes)
-
-	var arrayUlasan []ulasans.Ulasan
-
-	json.Unmarshal([]byte(bodyString), &arrayUlasan)
-
-	if len(arrayUlasan) == 0 {
-		helper.ResponseOutput(c, http.StatusNotFound, "NOT_FOUND", "belum ada ulasan", nil)
-	}
-
-	respDest, err := http.Get("https://ap-southeast-1.aws.data.mongodb-api.com/app/travello-sfoqh/endpoint/destination" + "?id=" + idDestination)
-	if err != nil {
-		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
-		return
-	}
-	defer respDest.Body.Close()
-
-	dataDest, _ := ioutil.ReadAll(respDest.Body)
-
-	var destination destinations.Destination
-	json.Unmarshal(dataDest, &destination)
-
-	if destination.ID == "" {
-		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", "data not found", nil)
-		return
-	}
-
-	responseUlasans := []ulasans.ResponseUlasan{}
-
-	for _, u := range arrayUlasan {
-		userService := service.NewUserService(repository.NewUserRepository(config.ConnectDatabase()))
-		user, err := userService.FindByID(u.UserId)
-		if err != nil {
-			panic(err)
-		}
-		responseUlasan := ulasans.ResponseUlasan{
-			UserName: user.Name,
-			Message:  u.Message,
-			Rating:   u.Rating,
-		}
-		responseUlasans = append(responseUlasans, responseUlasan)
-	}
-
-	helper.ResponseOutput(c, http.StatusOK, "OK", "success", gin.H{"destination": destination, "ulasan": responseUlasans})
+	helper.ResponseOutput(c, http.StatusOK, "OK", gin.H{"message": "berhasil mendapat ulasan", "count": count}, data)
 
 }
