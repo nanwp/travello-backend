@@ -20,6 +20,43 @@ func NewDestinationHandler() *destinatinHandler {
 	return &destinatinHandler{"https://ap-southeast-1.aws.data.mongodb-api.com/app/travello-sfoqh/endpoint/destination"}
 }
 
+func (h *destinatinHandler) Destination(c *gin.Context) {
+	destinationId := c.Param("id")
+
+	if destinationId == "" {
+		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", "Data not found", destinations.DestinationResponse{})
+		return
+	}
+
+	response, err := http.Get(h.urlApi + "?id=" + destinationId)
+
+	code := response.StatusCode
+
+	if code != 200 {
+		helper.ResponseOutput(c, int32(code), response.Status, nil, nil)
+		return
+	}
+
+	responseData, err := ioutil.ReadAll(response.Body)
+
+	if err != nil {
+		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
+		return
+	}
+
+	if err != nil {
+		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
+		return
+	}
+
+	hasil := destinations.Destination{}
+	json.Unmarshal(responseData, &hasil)
+
+	respData := convertDataToResponse(hasil)
+
+	helper.ResponseOutput(c, http.StatusOK, "OK", "Success get data", respData)
+}
+
 func (h *destinatinHandler) Destinations(c *gin.Context) {
 
 	category := c.Query("category")
