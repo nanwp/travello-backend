@@ -25,6 +25,7 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 
 	r.GET("/destinations", destinatinHandler.Destinations)
 	r.POST("/destination", destinatinHandler.Create)
+	r.GET("/destination/:id", destinatinHandler.Destination)
 
 	r.GET("/user", auth.JWTMiddleware, userHandler.GetUser)
 	r.PUT("/user", auth.JWTMiddleware, userHandler.UpdateUser)
