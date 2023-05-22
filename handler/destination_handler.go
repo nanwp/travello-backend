@@ -54,11 +54,7 @@ func (h *destinatinHandler) Destination(c *gin.Context) {
 	hasil := destinations.Destination{}
 	json.Unmarshal(responseData, &hasil)
 
-	ulas, jumlah, err := service.NewUlasanService().Get(destinationId)
-	if err != nil {
-		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
-	}
-
+	ulas, jumlah, _ := service.NewUlasanService().Get(destinationId)
 	var maxUlasan int
 
 	if len(ulas) < 4 {
