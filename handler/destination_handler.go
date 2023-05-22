@@ -63,6 +63,10 @@ func (h *destinatinHandler) Destination(c *gin.Context) {
 		maxUlasan = 4
 	}
 
+	if ulas == nil {
+		ulas = []ulasans.ResponseUlasan{}
+	}
+
 	respData := convertDataToResponse(hasil, jumlah, ulas[:maxUlasan])
 
 	helper.ResponseOutput(c, http.StatusOK, "OK", "Success get data", respData)
