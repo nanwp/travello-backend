@@ -23,7 +23,7 @@ type DestinationResponse struct {
 	Image       []string                 `json:"image,omitempty"`
 	Rating      float32                  `json:"rating"`
 	CountUlasan int                      `json:"jumlah_ulasan"`
-	Ulasan      []ulasans.ResponseUlasan `json:"ulasan,omitempty"`
+	Ulasan      []ulasans.ResponseUlasan `json:"ulasan"`
 	CreatedAt   string                   `json:"created_at,omitempty"`
 	UpdatedAt   string                   `json:"updated_at,omitempty"`
 }
