@@ -59,7 +59,15 @@ func (h *destinatinHandler) Destination(c *gin.Context) {
 		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
 	}
 
-	respData := convertDataToResponse(hasil, jumlah, ulas[:4])
+	var maxUlasan int
+
+	if len(ulas) < 4 {
+		maxUlasan = len(ulas)
+	} else {
+		maxUlasan = 4
+	}
+
+	respData := convertDataToResponse(hasil, jumlah, ulas[:maxUlasan])
 
 	helper.ResponseOutput(c, http.StatusOK, "OK", "Success get data", respData)
 }
