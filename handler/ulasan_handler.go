@@ -45,7 +45,14 @@ func (h *ulasanHandler) AddUlasan(c *gin.Context) {
 		return
 	}
 
-	helper.ResponseOutput(c, http.StatusOK, "OK", "berhasil menambahkan ulasan", ulasanResp)
+	respCreate := gin.H{
+		"destination_id": ulasanResp.DestinationId,
+		"user_id":        ulasanResp.UserId,
+		"message":        ulasanResp.Message,
+		"rating":         ulasanResp.Rating,
+	}
+
+	helper.ResponseOutput(c, http.StatusOK, "OK", "berhasil menambahkan ulasan", respCreate)
 }
 
 func (h ulasanHandler) GetUlasanByDestination(c *gin.Context) {
