@@ -3,15 +3,17 @@ package destinations
 import "github.com/nanwp/travello/models/ulasans"
 
 type Destination struct {
-	ID          string   `json:"_id"`
-	Nama        string   `json:"name" binding:"required"`
-	Description string   `json:"description" binding:"required"`
-	Location    string   `json:"location" binding:"required"`
-	Category    string   `json:"category"`
-	Image       []string `json:"image"`
-	Rating      float32  `json:"rating"`
-	CreatedAt   string   `json:"created_at"`
-	UpdatedAt   string   `json:"updated_at"`
+	ID          string                   `json:"_id"`
+	Nama        string                   `json:"name" binding:"required"`
+	Description string                   `json:"description" binding:"required"`
+	Location    string                   `json:"location" binding:"required"`
+	Category    string                   `json:"category"`
+	Image       []string                 `json:"image"`
+	Rating      float32                  `json:"rating"`
+	CountUlasan int                      `json:"jumlah_ulasan"`
+	Ulasan      []ulasans.ResponseUlasan `json:"ulasan"`
+	CreatedAt   string                   `json:"created_at"`
+	UpdatedAt   string                   `json:"updated_at"`
 }
 
 type DestinationResponse struct {

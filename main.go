@@ -8,12 +8,16 @@ import (
 )
 
 func main() {
-
 	db := config.ConnectDatabase()
+
+	defer func() {
+		dbInstance, _ := db.DB()
+		_ = dbInstance.Close()
+	}()
 
 	router := middleware.InitRouter(db)
 
 	if err := router.Run(":8080"); err != nil {
-		panic(fmt.Errorf("failed start server: %s", err))
+		panic(fmt.Errorf("failed to start server: %s", err))
 	}
 }
