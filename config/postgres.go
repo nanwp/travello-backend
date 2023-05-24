@@ -15,5 +15,11 @@ func ConnectDatabase() *gorm.DB {
 		log.Fatalln(err)
 	}
 
+	// dbInstance, err := database.DB()
+	// if err != nil {
+	// 	log.Fatalln(err)
+	// }
+	// defer dbInstance.Close()
+
 	return database
 }

@@ -13,9 +13,15 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 	router := gin.New()
 	router.Use(CORSMiddleware())
 
-	userHandler := handler.NewUserHandler(service.NewUserService(repository.NewUserRepository(db)))
-	destinatinHandler := handler.NewDestinationHandler()
-	ulasanHandler := handler.NewUlasanHandler(service.NewUlasanService())
+	userRepo := repository.NewUserRepository(db)
+	ulasanRepo := repository.NewUlasanRepository(db)
+
+	userService := service.NewUserService(userRepo)
+	ulasanService := service.NewUlasanService(ulasanRepo, *userService)
+
+	userHandler := handler.NewUserHandler(userService)
+	destinatinHandler := handler.NewDestinationHandler(ulasanService)
+	ulasanHandler := handler.NewUlasanHandler(ulasanService)
 
 	r := router.Group("api")
 
