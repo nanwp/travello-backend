@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -78,7 +79,7 @@ func (h *userHandler) Register(c *gin.Context) {
 		return
 	}
 
-	helper.ResponseOutput(c, http.StatusCreated, "CREATED", "succes create user", user)
+	helper.ResponseOutput(c, http.StatusCreated, "CREATED", "check your email to be verified", user)
 }
 
 func (h *userHandler) GetUser(c *gin.Context) {
@@ -181,12 +182,9 @@ func (h *userHandler) Login(c *gin.Context) {
 
 	userLogin, err := h.userService.FindByEmail(userInput.Email)
 	if err != nil {
+		log.Println(err.Error())
 		switch err {
 		case gorm.ErrRecordNotFound:
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":  "BAD_REQUEST",
-				"message": "user not found",
-			})
 			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", "user not found", nil)
 			return
 
@@ -207,7 +205,7 @@ func (h *userHandler) Login(c *gin.Context) {
 	}
 
 	if userLogin.Verified {
-		expTime := time.Now().Add(time.Hour * 24)
+		expTime := time.Now().Add(time.Hour * 8640)
 		claims := &config.JWTClaim{
 			UserID: userLogin.ID,
 			RegisteredClaims: jwt.RegisteredClaims{
