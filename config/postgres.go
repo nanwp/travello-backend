@@ -7,19 +7,16 @@ import (
 	"gorm.io/gorm"
 )
 
+const usernamePostgre = "postgres"
+const passwordPostgre = "Latihan"
+
 func ConnectDatabase() *gorm.DB {
-	url := "postgres://postgres:Latihan@103.171.182.206:5432/travello"
+	url := "postgres://" + usernamePostgre + ":" + passwordPostgre + "@103.171.182.206:5432/travello"
 	database, err := gorm.Open(postgres.Open(url), &gorm.Config{})
 
 	if err != nil {
 		log.Fatalln(err)
 	}
-
-	// dbInstance, err := database.DB()
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
-	// defer dbInstance.Close()
 
 	return database
 }

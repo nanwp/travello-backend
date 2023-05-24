@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"net/url"
 	"sort"
+	"strconv"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/nanwp/travello/helper"
@@ -83,7 +85,8 @@ func (h *destinatinHandler) Destinations(c *gin.Context) {
 
 	category := c.Query("category")
 	search := c.Query("search")
-	// popular := c.Query("popular")
+	limit := c.Query("limit")
+	orderBy := c.Query("orderby")
 
 	urlApi := h.urlApi
 
@@ -102,41 +105,70 @@ func (h *destinatinHandler) Destinations(c *gin.Context) {
 		return
 	}
 
-	responseData, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), []destinations.DestinationResponse{})
-		return
+	var hasil []destinations.Destination
+
+	decoder := json.NewDecoder(response.Body)
+	if err := decoder.Decode(&hasil); err != nil {
+		log.Printf("error get data from mongodb %v", err.Error())
 	}
 
-	hasil := []destinations.Destination{}
-	json.Unmarshal(responseData, &hasil)
-
-	sort.Slice(hasil, func(i, j int) bool {
-		return hasil[j].UpdatedAt < hasil[i].UpdatedAt
-	})
-
 	var data []destinations.DestinationResponse
+
 	for _, d := range hasil {
 		data = append(data, convertDataToResponse(d))
 	}
 
+	var wg sync.WaitGroup
 	for i := 0; i < len(data); i++ {
-		ulasan, err := h.uService.GetUlasanByDestinationID(data[i].ID)
-
-		if err != nil {
-			log.Printf("error message : %v", err.Error())
-		}
-		if ulasan != nil {
-			var maxUlasan int
-
-			if len(ulasan) < 4 {
-				maxUlasan = len(ulasan)
-			} else {
-				maxUlasan = 4
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			ulasan, err := h.uService.GetUlasanByDestinationID(data[i].ID)
+			if err != nil {
+				log.Printf("error message : %v", err.Error())
 			}
+			if ulasan != nil {
+				var maxUlasan int
+				if len(ulasan) < 4 {
+					maxUlasan = len(ulasan)
+				} else {
+					maxUlasan = 4
+				}
+				data[i].Ulasan = ulasan[:maxUlasan]
+				data[i].CountUlasan = len(ulasan)
+			}
+		}(i)
+	}
+	wg.Wait()
 
-			data[i].Ulasan = ulasan[:maxUlasan]
-			data[i].CountUlasan = len(ulasan)
+	if orderBy != "" {
+		switch orderBy {
+		case "popular":
+			sort.Slice(data, func(i, j int) bool {
+				return data[j].CountUlasan < data[i].CountUlasan
+			})
+		case "highRating":
+			sort.Slice(data, func(i, j int) bool {
+				return data[j].Rating < data[i].Rating
+			})
+		default:
+			sort.Slice(data, func(i, j int) bool {
+				return data[j].UpdatedAt < data[i].UpdatedAt
+			})
+		}
+
+	} else {
+		sort.Slice(data, func(i, j int) bool {
+			return data[j].UpdatedAt < data[i].UpdatedAt
+		})
+	}
+
+	if limit != "" {
+		limitInt, _ := strconv.Atoi(limit)
+		if limitInt != 0 {
+			limitHasil := data[:limitInt]
+			helper.ResponseOutput(c, http.StatusOK, "OK", "Success get data", limitHasil)
+			return
 		}
 	}
 
@@ -191,18 +223,3 @@ func convertDataToResponse(data destinations.Destination) destinations.Destinati
 	}
 	return resp
 }
-
-// func (s *destinationService) Create(destinatin destinations.Destination) (http.Response, error) {
-// 	params := url.Values{}
-// 	params.Add("name", destinatin.Nama)
-// 	params.Add("location", destinatin.Location)
-
-// 	resp, err := http.PostForm(s.url, params)
-
-// 	if err != nil {
-// 		return *resp, err
-// 	}
-
-// 	return *resp, err
-
-// }
