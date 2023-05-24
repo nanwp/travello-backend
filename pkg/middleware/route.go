@@ -27,7 +27,7 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 
 	r.POST("/register", userHandler.Register)
 	r.POST("/login", userHandler.Login)
-	r.GET("/verify", userHandler.VerifyEmail)
+	// r.GET("/verify", userHandler.VerifyEmail)
 
 	r.GET("/destinations", destinatinHandler.Destinations)
 	r.POST("/destination", destinatinHandler.Create)
@@ -40,6 +40,7 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 	r.POST("/ulasan", auth.JWTMiddleware, ulasanHandler.AddUlasan)
 	r.GET("/ulasan", ulasanHandler.GetUlasanByDestination)
 
+	router.GET("/verify", userHandler.VerifyEmail)
 	router.LoadHTMLGlob("templates/*/*.html")
 
 	router.NoRoute(func(c *gin.Context) {
