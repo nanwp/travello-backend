@@ -171,11 +171,6 @@ func (h *userHandler) Login(c *gin.Context) {
 			errorMessage := fmt.Sprintf("error on field %s, conditions: %s", e.Field(), e.ActualTag())
 			errorMessages = append(errorMessages, errorMessage)
 		}
-
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status": "BAD_REQUEST",
-			"errors": errorMessages,
-		})
 		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", errorMessages, nil)
 		return
 	}
@@ -189,10 +184,6 @@ func (h *userHandler) Login(c *gin.Context) {
 			return
 
 		default:
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":  "BAD_REQUEST",
-				"message": err,
-			})
 			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err, nil)
 
 			return
