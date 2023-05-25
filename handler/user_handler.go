@@ -56,7 +56,7 @@ func (h *userHandler) Register(c *gin.Context) {
 		errorMessages := []string{}
 
 		for _, e := range err.(validator.ValidationErrors) {
-			errorMessage := fmt.Sprintf("Error on fieled %s, conditions: %s", e.Field(), e.ActualTag())
+			errorMessage := fmt.Sprintf("%s %s", e.Field(), e.ActualTag())
 			errorMessages = append(errorMessages, errorMessage)
 		}
 		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", errorMessages, nil)
@@ -168,7 +168,7 @@ func (h *userHandler) Login(c *gin.Context) {
 	if err != nil {
 		errorMessages := []string{}
 		for _, e := range err.(validator.ValidationErrors) {
-			errorMessage := fmt.Sprintf("error on field %s, conditions: %s", e.Field(), e.ActualTag())
+			errorMessage := fmt.Sprintf("%s %s", e.Field(), e.ActualTag())
 			errorMessages = append(errorMessages, errorMessage)
 		}
 		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", errorMessages, nil)
