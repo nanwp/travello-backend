@@ -16,6 +16,7 @@ type UlasanService interface {
 	GetUlasanByDestinationID(idDestination string) ([]ulasans.ResponseUlasan, error)
 	Create(ulasan ulasans.Ulasan) (ulasans.Ulasan, error)
 	// GetAllUlasan() ([]ulasans.ResponseUlasan, error)
+	GetCountUlasanByDestinationID(destinationId string) (int64, error)
 }
 
 type ulasanService struct {
@@ -26,6 +27,10 @@ type ulasanService struct {
 
 func NewUlasanService(repository repository.UlasanRepository, usrService userService) *ulasanService {
 	return &ulasanService{repository, "https://ap-southeast-1.aws.data.mongodb-api.com/app/travello-sfoqh/endpoint/destination", usrService}
+}
+
+func (s *ulasanService) GetCountUlasanByDestinationID(destinationId string) (int64, error) {
+	return s.repository.GetCountUlasanByDestinationID(destinationId)
 }
 
 func (s *ulasanService) Create(ulasan ulasans.Ulasan) (ulasans.Ulasan, error) {

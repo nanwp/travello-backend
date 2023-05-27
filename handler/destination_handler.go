@@ -121,22 +121,13 @@ func (h *destinatinHandler) Destinations(c *gin.Context) {
 	var wg sync.WaitGroup
 	for i := 0; i < len(data); i++ {
 		wg.Add(1)
-		go func(i int) {
+		go func(index int) {
 			defer wg.Done()
-			ulasan, err := h.uService.GetUlasanByDestinationID(data[i].ID)
+			ulasanCount, err := h.uService.GetCountUlasanByDestinationID(data[index].ID)
 			if err != nil {
 				log.Printf("error message : %v", err.Error())
 			}
-			if ulasan != nil {
-				var maxUlasan int
-				if len(ulasan) < 4 {
-					maxUlasan = len(ulasan)
-				} else {
-					maxUlasan = 4
-				}
-				data[i].Ulasan = ulasan[:maxUlasan]
-				data[i].CountUlasan = len(ulasan)
-			}
+			data[index].CountUlasan = int(ulasanCount)
 		}(i)
 	}
 	wg.Wait()
