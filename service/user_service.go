@@ -143,7 +143,7 @@ func (s *userService) VerifyEmail(ID string) (users.UserResponse, error) {
 }
 
 func sendVerificationEmail(user users.User) error {
-	url := fmt.Sprintf("http://103.171.182.206:8070/verify?id=%s", user.ID)
+	url := fmt.Sprintf("https://travello.pegelinux.tech/verify?id=%s", user.ID)
 	bodyEmail := fmt.Sprintf("Hello %s,<br><br>Klik link di bawah ini untuk mengaktifkan akun kamu:<br><br><a href=\"%s\">Aktifkan Akun</a>", user.Name, url)
 	mailer := gomail.NewMessage()
 	mailer.SetHeader("From", config.CONFIG_SENDER_NAME)

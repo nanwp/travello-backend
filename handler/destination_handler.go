@@ -3,23 +3,26 @@ package handler
 import (
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"sort"
+	"strconv"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/nanwp/travello/helper"
 	"github.com/nanwp/travello/models/destinations"
-	"github.com/nanwp/travello/models/ulasans"
 	"github.com/nanwp/travello/service"
 )
 
 type destinatinHandler struct {
-	urlApi string
+	urlApi   string
+	uService service.UlasanService
 }
 
-func NewDestinationHandler() *destinatinHandler {
-	return &destinatinHandler{"https://ap-southeast-1.aws.data.mongodb-api.com/app/travello-sfoqh/endpoint/destination"}
+func NewDestinationHandler(uService service.UlasanService) *destinatinHandler {
+	return &destinatinHandler{"https://ap-southeast-1.aws.data.mongodb-api.com/app/travello-sfoqh/endpoint/destination", uService}
 }
 
 func (h *destinatinHandler) Destination(c *gin.Context) {
@@ -54,20 +57,18 @@ func (h *destinatinHandler) Destination(c *gin.Context) {
 	hasil := destinations.Destination{}
 	json.Unmarshal(responseData, &hasil)
 
-	ulas, jumlah, _ := service.NewUlasanService().Get(destinationId)
-	var maxUlasan int
-
-	if len(ulas) < 4 {
-		maxUlasan = len(ulas)
-	} else {
-		maxUlasan = 4
+	ulas, err := h.uService.GetUlasanByDestinationID(hasil.ID)
+	if err != nil {
+		log.Printf("error message : %v", err.Error())
 	}
 
-	if ulas == nil {
-		ulas = []ulasans.ResponseUlasan{}
-	}
+	respData := convertDataToResponse(hasil)
 
-	respData := convertDataToResponse(hasil, jumlah, ulas[:maxUlasan])
+	if ulas != nil {
+
+		respData.Ulasan = ulas
+		respData.CountUlasan = len(ulas)
+	}
 
 	helper.ResponseOutput(c, http.StatusOK, "OK", "Success get data", respData)
 }
@@ -76,142 +77,84 @@ func (h *destinatinHandler) Destinations(c *gin.Context) {
 
 	category := c.Query("category")
 	search := c.Query("search")
+	limit := c.Query("limit")
+	orderBy := c.Query("orderby")
 
-	if search != "" && category != "" {
-		response, err := http.Get(h.urlApi + "?search=" + url.QueryEscape(search) + "&category=" + category)
-		if err != nil {
-			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), []destinations.DestinationResponse{})
-			return
-		}
-
-		responseData, err := ioutil.ReadAll(response.Body)
-		if err != nil {
-			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), []destinations.DestinationResponse{})
-			return
-		}
-
-		hasil := []destinations.Destination{}
-
-		json.Unmarshal(responseData, &hasil)
-
-		sort.Slice(hasil, func(i, j int) bool {
-			return hasil[j].UpdatedAt < hasil[i].UpdatedAt
-		})
-
-		var data []destinations.DestinationResponse
-
-		if len(hasil) != 0 {
-			for _, d := range hasil {
-				_, jumlah, _ := service.NewUlasanService().Get(d.ID)
-				data = append(data, convertDataToResponse(d, jumlah, nil))
-			}
-			helper.ResponseOutput(c, http.StatusOK, "OK", "Success get data", data)
-			return
-		}
-
-		helper.ResponseOutput(c, http.StatusNotFound, "NOT_FOUND", "data not found", []destinations.DestinationResponse{})
-		return
-	}
+	urlApi := h.urlApi
 
 	if search != "" {
-		response, err := http.Get(h.urlApi + "?search=" + url.QueryEscape(search))
-		if err != nil {
-			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), []destinations.DestinationResponse{})
-			return
+		urlApi += "?search=" + url.QueryEscape(search)
+		if category != "" {
+			urlApi += "&category=" + category
 		}
-
-		responseData, err := ioutil.ReadAll(response.Body)
-		if err != nil {
-			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), []destinations.DestinationResponse{})
-			return
-		}
-
-		hasil := []destinations.Destination{}
-
-		json.Unmarshal(responseData, &hasil)
-
-		sort.Slice(hasil, func(i, j int) bool {
-			return hasil[j].UpdatedAt < hasil[i].UpdatedAt
-		})
-
-		var data []destinations.DestinationResponse
-
-		if len(hasil) != 0 {
-			for _, d := range hasil {
-				_, jumlah, _ := service.NewUlasanService().Get(d.ID)
-				data = append(data, convertDataToResponse(d, jumlah, nil))
-			}
-			helper.ResponseOutput(c, http.StatusOK, "OK", "Success get data", data)
-			return
-		}
-
-		helper.ResponseOutput(c, http.StatusNotFound, "NOT_FOUND", "data not found", []destinations.DestinationResponse{})
-		return
+	} else if category != "" {
+		urlApi += "?category=" + category
 	}
 
-	if category != "" {
-		response, err := http.Get(h.urlApi + "?category=" + category)
-		if err != nil {
-			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), []destinations.DestinationResponse{})
-			return
-		}
-
-		responseData, err := ioutil.ReadAll(response.Body)
-		if err != nil {
-			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), []destinations.DestinationResponse{})
-			return
-		}
-
-		hasil := []destinations.Destination{}
-		json.Unmarshal(responseData, &hasil)
-
-		sort.Slice(hasil, func(i, j int) bool {
-			return hasil[j].UpdatedAt < hasil[i].UpdatedAt
-		})
-
-		var data []destinations.DestinationResponse
-
-		if len(hasil) != 0 {
-			for _, d := range hasil {
-				_, jumlah, _ := service.NewUlasanService().Get(d.ID)
-				data = append(data, convertDataToResponse(d, jumlah, nil))
-			}
-			helper.ResponseOutput(c, http.StatusOK, "OK", "Success get data", data)
-			return
-		}
-
-		helper.ResponseOutput(c, http.StatusNotFound, "NOT_FOUND", "data not found", []destinations.DestinationResponse{})
-		return
-
-	}
-
-	response, err := http.Get(h.urlApi)
-
+	response, err := http.Get(urlApi)
 	if err != nil {
 		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), []destinations.DestinationResponse{})
 		return
 	}
 
-	responseData, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), []destinations.DestinationResponse{})
-		return
+	var hasil []destinations.Destination
+
+	decoder := json.NewDecoder(response.Body)
+	if err := decoder.Decode(&hasil); err != nil {
+		log.Printf("error get data from mongodb %v", err.Error())
 	}
-
-	hasil := []destinations.Destination{}
-
-	json.Unmarshal(responseData, &hasil)
-
-	sort.Slice(hasil, func(i, j int) bool {
-		return hasil[j].UpdatedAt < hasil[i].UpdatedAt
-	})
 
 	var data []destinations.DestinationResponse
 
 	for _, d := range hasil {
-		_, jumlah, _ := service.NewUlasanService().Get(d.ID)
-		data = append(data, convertDataToResponse(d, jumlah, nil))
+		data = append(data, convertDataToResponse(d))
 	}
+
+	var wg sync.WaitGroup
+	for i := 0; i < len(data); i++ {
+		wg.Add(1)
+		go func(index int) {
+			defer wg.Done()
+			ulasanCount, err := h.uService.GetCountUlasanByDestinationID(data[index].ID)
+			if err != nil {
+				log.Printf("error message : %v", err.Error())
+			}
+			data[index].CountUlasan = int(ulasanCount)
+		}(i)
+	}
+	wg.Wait()
+
+	if orderBy != "" {
+		switch orderBy {
+		case "popular":
+			sort.Slice(data, func(i, j int) bool {
+				return data[j].CountUlasan < data[i].CountUlasan
+			})
+		case "highRating":
+			sort.Slice(data, func(i, j int) bool {
+				return data[j].Rating < data[i].Rating
+			})
+		default:
+			sort.Slice(data, func(i, j int) bool {
+				return data[j].UpdatedAt < data[i].UpdatedAt
+			})
+		}
+
+	} else {
+		sort.Slice(data, func(i, j int) bool {
+			return data[j].UpdatedAt < data[i].UpdatedAt
+		})
+	}
+
+	if limit != "" {
+		limitInt, _ := strconv.Atoi(limit)
+		if limitInt != 0 {
+			limitHasil := data[:limitInt]
+			helper.ResponseOutput(c, http.StatusOK, "OK", "Success get data", limitHasil)
+			return
+		}
+	}
+
 	helper.ResponseOutput(c, http.StatusOK, "OK", "Success get data", data)
 
 }
@@ -247,7 +190,7 @@ func (h *destinatinHandler) Create(c *gin.Context) {
 
 }
 
-func convertDataToResponse(data destinations.Destination, jumlah int, ulasan []ulasans.ResponseUlasan) destinations.DestinationResponse {
+func convertDataToResponse(data destinations.Destination) destinations.DestinationResponse {
 	resp := destinations.DestinationResponse{
 		ID:          data.ID,
 		Nama:        data.Nama,
@@ -256,25 +199,10 @@ func convertDataToResponse(data destinations.Destination, jumlah int, ulasan []u
 		Category:    data.Category,
 		Image:       data.Image,
 		Rating:      data.Rating,
-		CountUlasan: jumlah,
-		Ulasan:      ulasan,
+		CountUlasan: data.CountUlasan,
+		Ulasan:      data.Ulasan,
 		CreatedAt:   data.CreatedAt,
 		UpdatedAt:   data.UpdatedAt,
 	}
 	return resp
 }
-
-// func (s *destinationService) Create(destinatin destinations.Destination) (http.Response, error) {
-// 	params := url.Values{}
-// 	params.Add("name", destinatin.Nama)
-// 	params.Add("location", destinatin.Location)
-
-// 	resp, err := http.PostForm(s.url, params)
-
-// 	if err != nil {
-// 		return *resp, err
-// 	}
-
-// 	return *resp, err
-
-// }

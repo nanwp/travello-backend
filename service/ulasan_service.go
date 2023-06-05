@@ -1,64 +1,117 @@
 package service
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"log"
 	"net/http"
 
-	"github.com/nanwp/travello/config"
 	"github.com/nanwp/travello/models/ulasans"
 	"github.com/nanwp/travello/repository"
+	"gorm.io/gorm"
 )
 
 type UlasanService interface {
-	Get(idDestination string) ([]ulasans.ResponseUlasan, int, error)
+	GetUlasanByDestinationID(idDestination string) ([]ulasans.ResponseUlasan, error)
+	Create(ulasan ulasans.Ulasan) (ulasans.Ulasan, error)
+	// GetAllUlasan() ([]ulasans.ResponseUlasan, error)
+	GetCountUlasanByDestinationID(destinationId string) (int64, error)
 }
 
 type ulasanService struct {
-	url string
+	repository     repository.UlasanRepository
+	urlDestination string
+	usrService     userService
 }
 
-func NewUlasanService() *ulasanService {
-	return &ulasanService{"https://ap-southeast-1.aws.data.mongodb-api.com/app/travello-sfoqh/endpoint/ulasan"}
+func NewUlasanService(repository repository.UlasanRepository, usrService userService) *ulasanService {
+	return &ulasanService{repository, "https://ap-southeast-1.aws.data.mongodb-api.com/app/travello-sfoqh/endpoint/destination", usrService}
 }
 
-func (s *ulasanService) Get(idDestination string) ([]ulasans.ResponseUlasan, int, error) {
+func (s *ulasanService) GetCountUlasanByDestinationID(destinationId string) (int64, error) {
+	return s.repository.GetCountUlasanByDestinationID(destinationId)
+}
 
-	resp, err := http.Get(s.url + "?destination=" + idDestination)
+func (s *ulasanService) Create(ulasan ulasans.Ulasan) (ulasans.Ulasan, error) {
 
+	//mengambil data ulasan yang sudah ada
+
+	dataUlasan, err := s.repository.GetByDestinationID(ulasan.DestinationId)
 	if err != nil {
-		return nil, 0, err
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			ulasan, _ := s.repository.Create(ulasan)
+			return ulasan, nil
+		} else {
+			return ulasans.Ulasan{}, err
+		}
+	}
+
+	for _, u := range dataUlasan {
+		if u.UserId == ulasan.UserId {
+			error := errors.New("hanya bisa 1 kali")
+			return ulasans.Ulasan{}, error
+		}
+	}
+
+	//set data ulasan
+	setUlasan, err := s.repository.Create(ulasan)
+	if err != nil {
+		return ulasans.Ulasan{}, err
+	}
+
+	//menghitung total ulasan
+	var totalUlasan = ulasan.Rating
+
+	//menambah total ulasan
+	for _, u := range dataUlasan {
+		totalUlasan += u.Rating
+	}
+
+	//update ulasan destinasi
+
+	type bodyUpdate struct {
+		Rating float32 `json:"rating"`
+	}
+
+	updateDest := bodyUpdate{
+		totalUlasan / float32(len(dataUlasan)+1),
+	}
+
+	jsonReqDest, err := json.Marshal(updateDest)
+
+	//mengupdate rating pada destinasi
+	reqDestinationUpdate, err := http.NewRequest(http.MethodPut, s.urlDestination+"?id="+ulasan.DestinationId, bytes.NewBuffer(jsonReqDest))
+	reqDestinationUpdate.Header.Set("Content-Type", "application/json; charset=utf-8")
+
+	client := &http.Client{}
+	resp, err := client.Do(reqDestinationUpdate)
+	if err != nil {
+		log.Fatalln(err)
 	}
 
 	defer resp.Body.Close()
-	bodyBytes, _ := ioutil.ReadAll(resp.Body)
 
-	bodyString := string(bodyBytes)
+	return setUlasan, nil
+}
 
-	var arrayUlasan []ulasans.Ulasan
+func (s *ulasanService) GetUlasanByDestinationID(idDestination string) ([]ulasans.ResponseUlasan, error) {
 
-	json.Unmarshal([]byte(bodyString), &arrayUlasan)
-
-	if len(arrayUlasan) == 0 {
-		return nil, 0, errors.New("ulasan kosong")
+	ulasan, err := s.repository.GetByDestinationID(idDestination)
+	if err != nil {
+		return nil, err
 	}
 
 	responseUlasans := []ulasans.ResponseUlasan{}
 
-	for _, u := range arrayUlasan {
-		userService := NewUserService(repository.NewUserRepository(config.ConnectDatabase()))
-		user, err := userService.FindByID(u.UserId)
-		if err != nil {
-			panic(err)
-		}
-		responseUlasan := ulasans.ResponseUlasan{
-			UserName: user.Name,
+	for _, u := range ulasan {
+		response := ulasans.ResponseUlasan{
+			UserName: u.User.Name,
 			Message:  u.Message,
 			Rating:   u.Rating,
 		}
-		responseUlasans = append(responseUlasans, responseUlasan)
+		responseUlasans = append(responseUlasans, response)
 	}
 
-	return responseUlasans, len(responseUlasans), nil
+	return responseUlasans, nil
 }

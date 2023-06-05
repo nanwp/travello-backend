@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -55,7 +56,7 @@ func (h *userHandler) Register(c *gin.Context) {
 		errorMessages := []string{}
 
 		for _, e := range err.(validator.ValidationErrors) {
-			errorMessage := fmt.Sprintf("Error on fieled %s, conditions: %s", e.Field(), e.ActualTag())
+			errorMessage := fmt.Sprintf("%s %s", e.Field(), e.ActualTag())
 			errorMessages = append(errorMessages, errorMessage)
 		}
 		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", errorMessages, nil)
@@ -78,7 +79,7 @@ func (h *userHandler) Register(c *gin.Context) {
 		return
 	}
 
-	helper.ResponseOutput(c, http.StatusCreated, "CREATED", "succes create user", user)
+	helper.ResponseOutput(c, http.StatusCreated, "CREATED", "check your email to be verified", user)
 }
 
 func (h *userHandler) GetUser(c *gin.Context) {
@@ -167,34 +168,22 @@ func (h *userHandler) Login(c *gin.Context) {
 	if err != nil {
 		errorMessages := []string{}
 		for _, e := range err.(validator.ValidationErrors) {
-			errorMessage := fmt.Sprintf("error on field %s, conditions: %s", e.Field(), e.ActualTag())
+			errorMessage := fmt.Sprintf("%s %s", e.Field(), e.ActualTag())
 			errorMessages = append(errorMessages, errorMessage)
 		}
-
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status": "BAD_REQUEST",
-			"errors": errorMessages,
-		})
 		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", errorMessages, nil)
 		return
 	}
 
 	userLogin, err := h.userService.FindByEmail(userInput.Email)
 	if err != nil {
+		log.Println(err.Error())
 		switch err {
 		case gorm.ErrRecordNotFound:
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":  "BAD_REQUEST",
-				"message": "user not found",
-			})
 			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", "user not found", nil)
 			return
 
 		default:
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":  "BAD_REQUEST",
-				"message": err,
-			})
 			helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err, nil)
 
 			return
@@ -207,7 +196,7 @@ func (h *userHandler) Login(c *gin.Context) {
 	}
 
 	if userLogin.Verified {
-		expTime := time.Now().Add(time.Hour * 24)
+		expTime := time.Now().Add(time.Hour * 8640)
 		claims := &config.JWTClaim{
 			UserID: userLogin.ID,
 			RegisteredClaims: jwt.RegisteredClaims{
