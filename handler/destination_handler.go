@@ -66,15 +66,7 @@ func (h *destinatinHandler) Destination(c *gin.Context) {
 
 	if ulas != nil {
 
-		var maxUlasan int
-
-		if len(ulas) < 4 {
-			maxUlasan = len(ulas)
-		} else {
-			maxUlasan = 4
-		}
-
-		respData.Ulasan = ulas[:maxUlasan]
+		respData.Ulasan = ulas
 		respData.CountUlasan = len(ulas)
 	}
 
