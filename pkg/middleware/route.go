@@ -38,7 +38,7 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 	r.PUT("/userpassword", auth.JWTMiddleware, userHandler.UpdatePassword)
 
 	r.POST("/ulasan", auth.JWTMiddleware, ulasanHandler.AddUlasan)
-	r.GET("/ulasan", ulasanHandler.GetUlasanByDestination)
+	// r.GET("/ulasan", ulasanHandler.GetUlasanByDestination)
 
 	router.GET("/verify", userHandler.VerifyEmail)
 	router.LoadHTMLGlob("templates/*/*.html")

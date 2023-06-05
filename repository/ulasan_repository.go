@@ -9,6 +9,7 @@ type UlasanRepository interface {
 	Create(ulasan ulasans.Ulasan) (ulasans.Ulasan, error)
 	GetByDestinationID(id string) ([]ulasans.Ulasan, error)
 	GetAllUlasan() ([]ulasans.Ulasan, error)
+	GetCountUlasanByDestinationID(destinationId string) (int64, error)
 }
 
 type ulasanRepository struct {
@@ -34,4 +35,12 @@ func (r *ulasanRepository) GetByDestinationID(id string) ([]ulasans.Ulasan, erro
 	var ulasan []ulasans.Ulasan
 	err := r.db.Where("destination_id = ?", id).Preload("User").Find(&ulasan).Error
 	return ulasan, err
+}
+
+func (r *ulasanRepository) GetCountUlasanByDestinationID(destinationId string) (int64, error) {
+	var count int64
+
+	err := r.db.Table("tbl_ulasan").Where("destination_id = ?", destinationId).Count(&count).Error
+
+	return count, err
 }
