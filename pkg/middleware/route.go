@@ -20,7 +20,7 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 	ulasanService := service.NewUlasanService(ulasanRepo, *userService)
 
 	userHandler := handler.NewUserHandler(userService)
-	destinatinHandler := handler.NewDestinationHandler(ulasanService)
+	destinatinHandler := handler.NewDestinationHandler(ulasanService, userService)
 	ulasanHandler := handler.NewUlasanHandler(ulasanService)
 
 	r := router.Group("api")
@@ -30,8 +30,10 @@ func InitRouter(db *gorm.DB) *gin.Engine {
 	// r.GET("/verify", userHandler.VerifyEmail)
 
 	r.GET("/destinations", destinatinHandler.Destinations)
-	r.POST("/destination", destinatinHandler.Create)
+	r.POST("/destination", auth.JWTMiddleware, destinatinHandler.Create)
 	r.GET("/destination/:id", destinatinHandler.Destination)
+	r.PUT("/destination/:id", auth.JWTMiddleware, destinatinHandler.Update)
+	r.DELETE("/destination/:id", auth.JWTMiddleware, destinatinHandler.Delete)
 
 	r.GET("/user", auth.JWTMiddleware, userHandler.GetUser)
 	r.PUT("/user", auth.JWTMiddleware, userHandler.UpdateUser)
