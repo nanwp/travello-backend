@@ -16,6 +16,22 @@ type Destination struct {
 	UpdatedAt   string                   `json:"updated_at"`
 }
 
+type DestinationCreate struct {
+	Nama        string   `json:"name" binding:"required"`
+	Description string   `json:"description" binding:"required"`
+	Location    string   `json:"location" binding:"required"`
+	Category    string   `json:"category" binding:"required"`
+	Image       []string `json:"image"`
+}
+
+type DestinationUpdate struct {
+	Nama        string   `json:"name"`
+	Description string   `json:"description"`
+	Location    string   `json:"location"`
+	Category    string   `json:"category"`
+	Image       []string `json:"image"`
+}
+
 type DestinationResponse struct {
 	ID          string                   `json:"id,omitempty"`
 	Nama        string                   `json:"name,omitempty"`
