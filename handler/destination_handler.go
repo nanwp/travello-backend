@@ -49,11 +49,6 @@ func (h *destinatinHandler) Destination(c *gin.Context) {
 		return
 	}
 
-	if err != nil {
-		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
-		return
-	}
-
 	hasil := destinations.Destination{}
 	json.Unmarshal(responseData, &hasil)
 
