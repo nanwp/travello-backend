@@ -142,21 +142,11 @@ func (h *userHandler) UpdatePassword(c *gin.Context) {
 	user, err := h.userService.FindByID(id)
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(passwordUpdate.OldPassword)); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  "BAD_REQUEST",
-			"message": "old password not match",
-		})
 		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", "old password not match", nil)
 		return
 	}
 
 	updated, err := h.userService.UpdatePassword(auth.UserID, passwordUpdate.NewPassword)
-
-	c.JSON(http.StatusOK, gin.H{
-		"status":  "OK",
-		"message": "success update password",
-		"data":    updated,
-	})
 	helper.ResponseOutput(c, http.StatusOK, "OK", "success update password", updated)
 
 }
