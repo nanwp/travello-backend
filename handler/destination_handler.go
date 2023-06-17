@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"bytes"
 	"encoding/json"
 	"io/ioutil"
 	"log"
@@ -13,16 +14,18 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/nanwp/travello/helper"
 	"github.com/nanwp/travello/models/destinations"
+	"github.com/nanwp/travello/pkg/middleware/auth"
 	"github.com/nanwp/travello/service"
 )
 
 type destinatinHandler struct {
-	urlApi   string
-	uService service.UlasanService
+	urlApi      string
+	uService    service.UlasanService
+	userService service.UserService
 }
 
-func NewDestinationHandler(uService service.UlasanService) *destinatinHandler {
-	return &destinatinHandler{"https://ap-southeast-1.aws.data.mongodb-api.com/app/travello-sfoqh/endpoint/destination", uService}
+func NewDestinationHandler(uService service.UlasanService, userService service.UserService) *destinatinHandler {
+	return &destinatinHandler{"https://ap-southeast-1.aws.data.mongodb-api.com/app/travello-sfoqh/endpoint/destination", uService, userService}
 }
 
 func (h *destinatinHandler) Destination(c *gin.Context) {
@@ -156,35 +159,104 @@ func (h *destinatinHandler) Destinations(c *gin.Context) {
 
 func (h *destinatinHandler) Create(c *gin.Context) {
 
-	createDes := destinations.Destination{
-		Nama:        c.Query("name"),
-		Location:    c.Query("location"),
-		Description: c.Query("description"),
-	}
-
-	urlParams := url.Values{}
-	urlParams.Add("name", createDes.Nama)
-	urlParams.Add("location", createDes.Location)
-	urlParams.Add("description", createDes.Description)
-
-	postData, err := http.PostForm(h.urlApi, urlParams)
+	var createBody destinations.DestinationCreate
+	err := c.ShouldBindJSON(&createBody)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err,
-		})
+		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
 		return
 	}
 
-	defer postData.Body.Close()
-	body, err := ioutil.ReadAll(postData.Body)
-	bodyString := string(body)
+	userLogin, _ := h.userService.FindByID(auth.UserID)
 
-	c.JSON(http.StatusCreated, gin.H{
-		"data": bodyString,
-	})
+	if userLogin.Role != "admin" {
+		helper.ResponseOutput(c, http.StatusUnauthorized, "Unauthorized", "anda bukan admin", nil)
+		return
+	}
+
+	jsonReqDest, err := json.Marshal(createBody)
+
+	reqDestinationCreate, err := http.NewRequest(http.MethodPost, h.urlApi, bytes.NewBuffer(jsonReqDest))
+	reqDestinationCreate.Header.Set("Content-Type", "application/json; charset=utf-8")
+
+	client := &http.Client{}
+	resp, err := client.Do(reqDestinationCreate)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	defer resp.Body.Close()
+
+	helper.ResponseOutput(c, http.StatusOK, "OK", "success create data", createBody)
+}
+
+func (h *destinatinHandler) Delete(c *gin.Context) {
+	id := c.Param("id")
+	userLogin, _ := h.userService.FindByID(auth.UserID)
+
+	if userLogin.Role != "admin" {
+		helper.ResponseOutput(c, http.StatusUnauthorized, "Unauthorized", "anda bukan admin", nil)
+		return
+	}
+
+	reqDeleteData, _ := http.NewRequest(http.MethodDelete, h.urlApi+"?id="+id, nil)
+	reqDeleteData.Header.Set("Content-Type", "application/json; charset=utf-8")
+	client := &http.Client{}
+
+	resp, err := client.Do(reqDeleteData)
+	if err != nil {
+		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", "data tidak ada", nil)
+		return
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", "data tidak ada", nil)
+		return
+	}
+
+	helper.ResponseOutput(c, http.StatusOK, "OK", "success delete data", nil)
 
 }
 
+func (h *destinatinHandler) Update(c *gin.Context) {
+	var updateBody destinations.DestinationUpdate
+	id := c.Param("id")
+	err := c.ShouldBindJSON(&updateBody)
+	if err != nil {
+		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", err.Error(), nil)
+		return
+	}
+
+	userLogin, _ := h.userService.FindByID(auth.UserID)
+
+	if userLogin.Role != "admin" {
+		helper.ResponseOutput(c, http.StatusUnauthorized, "Unauthorized", "anda bukan admin", nil)
+		return
+	}
+
+	jsonReqDest, err := json.Marshal(updateBody)
+
+	reqDestinationUpdate, err := http.NewRequest(http.MethodPut, h.urlApi+"?id="+id, bytes.NewBuffer(jsonReqDest))
+	reqDestinationUpdate.Header.Set("Content-Type", "application/json; charset=utf-8")
+
+	client := &http.Client{}
+	resp, err := client.Do(reqDestinationUpdate)
+	if err != nil {
+		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", "data tidak ada", nil)
+		return
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		helper.ResponseOutput(c, http.StatusBadRequest, "BAD_REQUEST", "data tidak ada", nil)
+		return
+	}
+
+	helper.ResponseOutput(c, http.StatusOK, "OK", "success update data", nil)
+
+}
 func convertDataToResponse(data destinations.Destination) destinations.DestinationResponse {
 	resp := destinations.DestinationResponse{
 		ID:          data.ID,
