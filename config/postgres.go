@@ -8,7 +8,7 @@ import (
 )
 
 const usernamePostgre = "postgres"
-const passwordPostgre = "NewVPSNanda"
+const passwordPostgre = "Latihan"
 
 func ConnectDatabase() *gorm.DB {
 	url := "postgres://" + usernamePostgre + ":" + passwordPostgre + "@103.171.182.206:5432/travello"
