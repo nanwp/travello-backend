@@ -43,4 +43,4 @@ jobs:
           whoami
           docker stop travello || true && docker rm travello || true
           docker pull ${{ vars.IMAGE_NAME }}
-          docker run -d -p 8070:8080 --name ${{ vars.CONTAINER_NAME }} ${{ vars.IMAGE_NAME }} 
+          docker run -d -p 8180:8180 --name ${{ vars.CONTAINER_NAME }} ${{ vars.IMAGE_NAME }} 
