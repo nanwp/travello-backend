@@ -17,7 +17,7 @@ func main() {
 
 	router := middleware.InitRouter(db)
 
-	if err := router.Run(":8080"); err != nil {
+	if err := router.Run(":8180"); err != nil {
 		panic(fmt.Errorf("failed to start server: %s", err))
 	}
 }
